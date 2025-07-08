@@ -12,7 +12,7 @@ export default function Calendar18() {
       mode="single"
       selected={date}
       onSelect={setDate}
-      className="rounded-lg border [--cell-size:--spacing(20)] md:[--cell-size:--spacing(20)]"
+      className="place-self-center rounded-lg border [--cell-size:--spacing(20)] md:[--cell-size:--spacing(20)]"
       buttonVariant="ghost"
     />
   )

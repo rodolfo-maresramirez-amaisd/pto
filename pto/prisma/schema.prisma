@@ -7,3 +7,901 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// the list of tables is used primarily to record and generate PTO for employees
+// tables:
+// - Employee
+// - EmployeeSchedule
+// - DistrictHolidays
+// - PersonalDays
+// - VacationDays
+// - SickDays
+
+
+model EmployeeInfo {
+  employeeId                                  BigInt                      @id
+  employeeNumber                              String                      @unique
+  birthDate                                   String?                     @db.Char(10)
+  hireDate                                    DateTime?
+  isTerminated                                Boolean?
+  positionGroupDescription                    String?
+  positionTypeCode                            String?
+  positionTypeDescription                     String?
+  positionNumberCode                          String?
+  positionDistributionsDepartmentCodes        String?
+  positionDistributionsDepartmentDescriptions String?
+  employmentStatusDescription                 String?
+  terminationId                               BigInt?
+  firstName                                   String
+  middleName                                  String?
+  lastName                                    String
+  emailAddress                                String?
+  emailAddressTwo                             String?
+  socialSecurityNumber                        String?
+  assignmentTypeDescription                   String?
+  primaryPhoneNumber                          String?
+  userName                                    String?
+  firstNameLegal                              String
+  databaseUsername                            String?
+  unformattedSocialSecurityNumber             String?                     @db.Char(9)
+  employmentId                                BigInt?
+  endDate                                     DateTime?
+  currentAssignmentId                         BigInt?
+  ethnicity                                   String?
+  gender                                      String?
+  workPhoneNumber                             String?
+  workPhoneNumberExtension                    String?
+  terminationAISDId                           BigInt?
+  terminationCode                             String?
+  terminationDate                             DateTime?
+  laserficheUsername                          String?
+  cardIssued                                  Boolean?                    @default(false)
+  Assignment                                  Assignment[]
+  ContractLetter                              ContractLetter[]
+  EmployeeBenefit                             EmployeeBenefit[]
+  EmployeeDeduction                           EmployeeDeduction[]
+  EmployeeYearsOfExperience                   EmployeeYearsOfExperience[]
+  Employment                                  Employment[]
+  TeacherClasses                              TeacherClasses[]
+}
+
+model EmployeeYearsOfExperience {
+  employeeYearExperienceID BigInt       @id
+  employeeId               BigInt
+  employeeNumber           String
+  districtId               BigInt
+  yearExperienceLabelId    BigInt
+  amount                   Int
+  yearExperienceLabel      String
+  employee                 EmployeeInfo @relation(fields: [employeeId], references: [employeeId], onDelete: Cascade)
+}
+
+model Asset {
+  assetId                BigInt         @id
+  assetNumber            String?
+  tagNumber              String?
+  description            String?
+  serialNumber           String?
+  itemDescription        String?
+  itemCode               String?
+  assetClassCode         String?
+  manufacturer           String?
+  model                  String?
+  vendor                 String?
+  isActiveInFiscalYear   Boolean?
+  dateInService          DateTime?
+  dateOutOfService       DateTime?
+  purchaseOrderId        BigInt?
+  warrantyExpirationDate DateTime?
+  originAmount           Decimal?
+  currentBuildingId      BigInt?
+  currentRoomId          BigInt?
+  modifiedTime           DateTime?
+  itemCategory           String?
+  warranty               String?
+  Building               Building?      @relation(fields: [currentBuildingId], references: [buildingId])
+  purchaseOrder          PurchaseOrder? @relation(fields: [purchaseOrderId], references: [purchaseOrderId])
+}
+
+model Assignment {
+  assignmentId                         BigInt              @id
+  positionId                           BigInt?
+  employeeId                           BigInt
+  employeeNumber                       String
+  timeOffTypeId                        BigInt?
+  isClosingAssignment                  Boolean
+  isPrimary                            Boolean?
+  buildingCode                         String
+  buildingDescription                  String
+  hoursPerDay                          Decimal
+  activePaidDayCount                   Int
+  positionDistributionsDepartmentCodes String
+  payType                              String?
+  hourlyPay                            Decimal?
+  employmentStatusClass                String?
+  accountId                            BigInt?
+  distributionPercent                  Decimal?
+  positionNumber                       String
+  assignmentTypeDescription            String
+  jobTypeCode                          String?
+  jobTypeDescription                   String?
+  supervisorId                         BigInt?
+  supervisorPositionId                 BigInt?
+  positionTypeCode                     String
+  departmentDescription                String
+  baseTotalPay                         Decimal?
+  dailyPayRate                         Decimal?
+  standardHours                        Decimal?
+  calendarCode                         String?
+  endDate                              DateTime?
+  startDate                            DateTime?
+  frequencyPayType                     String?
+  fiscalYearDescription                String?
+  positionTypeDescription              String?
+  contractStatusCode                   String?
+  employee                             EmployeeInfo        @relation(fields: [employeeNumber], references: [employeeNumber], onUpdate: NoAction)
+  AssignmentPayType                    AssignmentPayType[]
+}
+
+model AssignmentPayType {
+  assignmentPayTypeID          BigInt     @id
+  assignmentId                 BigInt
+  accountDistribution          String
+  assignmentPayTypeIDBase      BigInt?
+  endDateRemainingPaySchedules DateTime
+  enteredAmount                Decimal?
+  isActive                     Boolean
+  isFullPaySchedule            Boolean
+  isPrimary                    Boolean
+  paidToDate                   Decimal
+  payAmount                    Decimal
+  payScheduleDetailCount       Int
+  payTypeId                    BigInt
+  amountTypeCode               String
+  code                         String
+  description                  String
+  hoursWorked                  Decimal?
+  hoursWorkedTypeCode          String
+  payScheduleCode              String?
+  payScheduleDescription       String?
+  payScheduleFrequencyType     String?
+  stipendTotalPay              Decimal?
+  assignment                   Assignment @relation(fields: [assignmentId], references: [assignmentId], onDelete: Cascade)
+}
+
+model Building {
+  buildingId  BigInt  @id
+  code        String  @unique
+  description String
+  Asset       Asset[]
+  Room        Room[]
+}
+
+model Building_FIN {
+  buildingId  BigInt @id
+  code        String @unique
+  description String
+}
+
+model Building_FS {
+  buildingId  BigInt @id
+  code        String @unique
+  description String
+}
+
+model Room {
+  roomId       BigInt   @id
+  description  String
+  roomNumber   String
+  buildingCode String
+  buildingId   BigInt
+  phoneNumber  String?
+  building     Building @relation(fields: [buildingId], references: [buildingId], onDelete: Cascade)
+}
+
+model PositionAccountDistribution {
+  positionDistributionAccountDistributionId BigInt   @id
+  accountId                                 BigInt
+  distributionPercent                       Decimal
+  proratedDistributionPercent               Decimal
+  accountDescription                        String
+  positionDistPositionId                    BigInt
+  positionNumber                            String
+  displayAccount                            String
+  isCurrent                                 Boolean?
+  positionId                                BigInt?
+  fiscalYearDescription                     String?
+  fiscalYearId                              BigInt?
+}
+
+model Position {
+  positionId                 BigInt   @id
+  positionNumber             String
+  positionTypeCode           String
+  departmentCodes            String
+  departmentDescriptions     String
+  buildingCodes              String?
+  buildingDescriptions       String?
+  assignmentTypeCodes        String
+  assignmentTypeDescriptions String
+  jobTypeCode                String
+  jobTypeDescription         String
+  budgetedFTE                Decimal
+  positionGroupCode          String?
+  positionGroupDescription   String?
+  standardHours              Decimal?
+  positionTypeDescription    String?
+  calendarCode               String?
+  budgetedHoursPerDay        String?
+  fteGroupCode               String?
+  fiscalYearDescription      String?
+}
+
+model PAFAction {
+  code                        String   @id
+  description                 String
+  descriptionShort            String
+  employmentStatusDescription String
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @default(now()) @updatedAt
+}
+
+model PAFActionReason {
+  id               Int      @id @default(autoincrement())
+  code             String
+  actionCode       String
+  isActive         Boolean
+  description      String
+  descriptionShort String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+  pAFActionCode    String?
+}
+
+model EmployeeClass {
+  class                       String   @id
+  description                 String
+  descriptionShort            String
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @default(now()) @updatedAt
+  employmentStatusDescription String
+}
+
+model TalentEdApplicants {
+  applicantId          String   @id
+  firstName            String
+  lastName             String?
+  middleName           String?
+  socialSecurityNumber String?
+  emailAddress         String?
+  phoneNumber          String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @default(now()) @updatedAt
+}
+
+model TeacherSISInfo {
+  teacherKey             String  @id
+  locationCode           String
+  locationDescription    String
+  socialSecurityNumber   String?
+  employeeNumber         String
+  lastName               String?
+  firstName              String?
+  stateCourseId          String?
+  stateCourseDescription String?
+  localDescription       String?
+  localCourseNumber      String?
+}
+
+model Employment {
+  employmentId       BigInt       @id
+  employeeId         BigInt
+  comment            String?
+  employmentStatusId BigInt?
+  employmentTXId     BigInt?
+  employmentYears    Int
+  endDate            DateTime?
+  hireDate           DateTime?
+  isTerminated       Boolean
+  startDate          DateTime?
+  terminationId      BigInt?
+  employee           EmployeeInfo @relation(fields: [employeeId], references: [employeeId], onDelete: Cascade)
+}
+
+model EmployeeDeduction {
+  employeeDeductionId      BigInt       @id
+  employeeId               BigInt
+  employeeNumber           String
+  deductionId              BigInt
+  category                 String
+  startDate                DateTime?
+  endDate                  DateTime?
+  valueActual              Decimal?
+  w2BoxDescription         String?
+  deductionCode            String?
+  deductionCodeDescription String?
+  deductionDescription     String?
+  employee                 EmployeeInfo @relation(fields: [employeeId], references: [employeeId], onDelete: Cascade)
+}
+
+model EmployeeBenefit {
+  employeeBenefitId      BigInt       @id
+  employeeId             BigInt
+  employeeNumber         String
+  benefitId              BigInt
+  category               String
+  startDate              DateTime?
+  endDate                DateTime?
+  valueActual            Decimal?
+  w2BoxDescription       String?
+  benefitCode            String?
+  benefitCodeDescription String?
+  benefitDescription     String?
+  employee               EmployeeInfo @relation(fields: [employeeId], references: [employeeId], onDelete: Cascade)
+}
+
+model PeimsCode {
+  positionTypeCode String   @id
+  peimsRoleId      String?
+  peimsServiceId   String?
+  peimsJobType     String?
+  peimsJobClass    String?
+  NCES_CATEGORY    String?
+  NCES_POS         String?
+  ROLE_AUX         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+}
+
+model TalentEd {
+  id                Int              @id @default(autoincrement())
+  SSN               String?          @db.VarChar(9)
+  Z_UPDATE          String           @db.VarChar(1)
+  LAST_NAME         String?          @db.VarChar(30)
+  FIRST_NAME        String           @db.VarChar(30)
+  MIDDLE_NAME       String?          @db.VarChar(30)
+  ADDRESS1          String?          @db.VarChar(55)
+  CITY              String?          @db.VarChar(30)
+  STATE             String?          @db.VarChar(6)
+  ZIP               String?          @db.VarChar(10)
+  SEX               String?          @db.VarChar(1)
+  BIRTHDATE         String?          @db.VarChar(10)
+  PHONE             String?          @db.VarChar(24)
+  ETHNIC_GROUP      String?          @db.VarChar(50)
+  HIRE_DT           String?          @db.VarChar(10)
+  Z_JOB             String?          @db.VarChar(50)
+  Z_APPLICANT_ID    String?          @db.VarChar(10)
+  Z_APPLICANT_EMAIL String?          @db.VarChar(70)
+  POSITION_NBR      String?          @db.VarChar(8)
+  SavedApplicants   SavedApplicant[]
+}
+
+model EmployeeAddress {
+  id                  BigInt   @id @default(autoincrement())
+  addressId           BigInt
+  employeeNumber      String
+  fullAddress         String
+  streetNumberAndName String
+  city                String
+  state               String
+  stateCode           String?
+  zipCode             String
+  isMailing           Boolean?
+  isPhysical          Boolean?
+
+  @@unique([addressId, employeeNumber])
+}
+
+model OrgChart {
+  organizationChartRelationshipId                 BigInt  @id
+  positionId                                      BigInt
+  positionIdSupervisor                            BigInt?
+  positionNumberCode                              String
+  positionNumberCodeSupervisor                    String?
+  relationshipIdentifier                          String?
+  selfApproval                                    Boolean
+  positionDistributionsAssignmentTypeDescriptions String?
+  firstName                                       String?
+  lastName                                        String?
+  employeeNumber                                  String?
+  supervisorFirstName                             String?
+  supervisorLastName                              String?
+  supervisorEmployeeNumber                        String?
+  supervisorEmail                                 String?
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model benefitDates {
+  Z_DAY_OF_YEAR     DateTime @db.Date
+  Z_ASSESS_END_DT   DateTime @db.Date
+  Z_BEN_BEGIN_DT    DateTime @db.Date
+  Z_BEN_DED_BEG_MTH String   @db.VarChar(9)
+
+  @@ignore
+}
+
+model FLSACodeByPositionGroup {
+  code        String  @id(map: "PK__FLSACode__357D4CF824B9CB29") @db.VarChar(10)
+  FLSA_Status String? @db.Char(3)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model COFApprovalMap {
+  pkid            Int     @default(autoincrement())
+  Z_APP_ID        String? @db.Char(10)
+  Z_APPROVAL_TYPE String? @db.Char(25)
+  Z_APPROVAL_CAT  String? @db.Char(10)
+  RECNAME         String? @db.Char(15)
+  FIELDNAME       String? @db.Char(20)
+
+  @@index([Z_APP_ID, Z_APPROVAL_TYPE, Z_APPROVAL_CAT], map: "idx_COFApprovalMap_lookup")
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model COFApproverMap {
+  pkid            Int    @default(autoincrement())
+  OPRID           String @db.VarChar(25)
+  Z_APPROVAL_TYPE String @db.VarChar(30)
+  SEQNUM          Int
+  Z_APPROVAL_CAT  String @db.VarChar(10)
+  VALUE           String @db.VarChar(20)
+
+  @@index([OPRID, Z_APPROVAL_TYPE, SEQNUM, Z_APPROVAL_CAT, VALUE], map: "idx_COFApproverMap_lookup")
+  @@ignore
+}
+
+model COFApprovers {
+  pkid      Int       @id(map: "PK__COFAppro__40A64C0B0CA13DAE") @default(autoincrement())
+  OPRID     String    @db.VarChar(30)
+  OPRID_TO  String?   @db.VarChar(30)
+  FROM_DATE DateTime? @db.Date
+  TO_DATE   DateTime? @db.Date
+}
+
+model COFApproverType {
+  pkid            Int     @unique(map: "idx_COFApproverType_pkid") @default(autoincrement())
+  OPRID           String? @db.VarChar(30)
+  Z_APPROVER_TYPE String? @db.VarChar(25)
+  SEQNUM          Int?    @db.SmallInt
+  LEVEL_NUM       Int?    @db.SmallInt
+
+  @@index([OPRID, Z_APPROVER_TYPE, SEQNUM], map: "idx_COFApproverType_lookup")
+}
+
+model JournalEntry {
+  journalEntryId   BigInt       @id
+  createdBy        String
+  modifiedBy       String
+  batch            String
+  fiscalYear       String
+  createdTime      DateTime
+  modifiedTime     DateTime
+  status           String?
+  postDate         DateTime?
+  accountingPeriod String?
+  Attachment       Attachment[]
+}
+
+model Attachment {
+  attachmentId                 BigInt                      @id
+  moduleName                   String
+  objectName                   String
+  sourceId                     BigInt
+  mediaTypeCode                String
+  uploadedBy                   String
+  comment                      String?
+  uploadedTime                 DateTime
+  size                         BigInt
+  expenseReimbursementId       BigInt?
+  invoiceId                    BigInt?
+  journalEntryId               BigInt?
+  vendorId                     BigInt?
+  expenseReimbursementDetailId BigInt?
+  purchaseOrderId              BigInt?
+  uploadedToSkyward            DateTime?
+  laserficheEntryId            String?
+  attachmentTypeCode           String?
+  attachmentTypeDescription    String?
+  attachmentTypeId             BigInt?
+  creditCardTransactionId      BigInt?
+  creditCardTransaction        CreditCardTransaction?      @relation(fields: [creditCardTransactionId], references: [creditCardTransactionId])
+  expenseReimbursementDetail   ExpenseReimbursementDetail? @relation(fields: [expenseReimbursementDetailId], references: [expenseReimbursementDetailId])
+  expenseReimbursement         ExpenseReimbursement?       @relation(fields: [expenseReimbursementId], references: [expenseReimbursementId])
+  invoice                      Invoice?                    @relation(fields: [invoiceId], references: [invoiceId])
+  journalEntry                 JournalEntry?               @relation(fields: [journalEntryId], references: [journalEntryId])
+  purchaseOrder                PurchaseOrder?              @relation(fields: [purchaseOrderId], references: [purchaseOrderId])
+  vendor                       Vendor?                     @relation(fields: [vendorId], references: [vendorId], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Invoice {
+  invoiceId                          BigInt                            @id
+  invoiceNumber                      String?
+  createdTime                        DateTime
+  modifiedTime                       DateTime
+  createdBy                          String
+  modifiedBy                         String
+  accountsPayableRunId               BigInt?
+  attachmentCount                    Int
+  purchaseOrderNumber                String?
+  vendorName                         String?
+  vendorNumber                       String?
+  checkNumber                        String?
+  checkDate                          DateTime?
+  fiscalYear                         String?
+  paymentType                        String?
+  invoiceGroupCode                   String?
+  batch                              String?
+  amount                             Float
+  description                        String?
+  accountsPayableRunDescription      String?
+  checkTransactionCheckTransactionId BigInt?
+  Attachment                         Attachment[]
+  CheckTransactionLaserficheEntry    CheckTransactionLaserficheEntry[]
+  CredCardTransactionDetails         CredCardTransactionDetail[]
+  CheckTransaction                   CheckTransaction?                 @relation(fields: [checkTransactionCheckTransactionId], references: [checkTransactionId])
+  InvoiceAccounting                  InvoiceAccounting[]
+  InvoiceDetail                      InvoiceDetail[]
+}
+
+model CheckTransaction {
+  checkTransactionId              BigInt                            @id
+  checkNumber                     String
+  checkDate                       DateTime
+  amount                          Float
+  vendorId                        BigInt
+  vendorName                      String
+  vendorNumber                    String
+  invoiceNumber                   String?
+  invoiceDate                     DateTime?
+  checkType                       String
+  checkTypeCode                   String
+  nameOnCheck                     String
+  uploadedToLFForAllInvoices      Boolean?
+  Vendor                          Vendor                            @relation(fields: [vendorId], references: [vendorId])
+  CheckTransactionLaserficheEntry CheckTransactionLaserficheEntry[]
+  Invoice                         Invoice[]
+}
+
+model CheckTransactionLaserficheEntry {
+  checkTransactionId BigInt
+  laserficheEntryId  String
+  invoiceId          BigInt
+  vendorId           BigInt
+  CheckTransaction   CheckTransaction @relation(fields: [checkTransactionId], references: [checkTransactionId], onUpdate: NoAction)
+  Invoice            Invoice          @relation(fields: [invoiceId], references: [invoiceId], onUpdate: NoAction)
+  Vendor             Vendor           @relation(fields: [vendorId], references: [vendorId], onUpdate: NoAction)
+
+  @@id([checkTransactionId, invoiceId])
+}
+
+model InvoiceDetail {
+  invoiceDetailId   BigInt              @id
+  invoiceId         BigInt
+  displayOrder      Int
+  quantity          Float
+  unitCost          Float
+  amount            Float
+  description       String?
+  discountAmount    Float?              @default(0)
+  shippingAmount    Float?              @default(0)
+  InvoiceAccounting InvoiceAccounting[]
+  Invoice           Invoice             @relation(fields: [invoiceId], references: [invoiceId])
+}
+
+model InvoiceAccounting {
+  invoiceAccountingId BigInt        @id
+  invoiceId           BigInt
+  invoiceDetailId     BigInt
+  displayAccount      String
+  amount              Float
+  fundDimension       String?
+  InvoiceDetail       InvoiceDetail @relation(fields: [invoiceDetailId], references: [invoiceDetailId], onDelete: Cascade)
+  Invoice             Invoice       @relation(fields: [invoiceId], references: [invoiceId], onUpdate: NoAction)
+}
+
+model Vendor {
+  vendorId                        BigInt                            @id
+  vendorNumber                    String
+  vendorName                      String
+  mailingAddress                  String?
+  physicalAddress                 String?
+  mailAddressWithComma            String?
+  Attachment                      Attachment[]
+  CheckTransaction                CheckTransaction[]
+  CheckTransactionLaserficheEntry CheckTransactionLaserficheEntry[]
+}
+
+model CreditCard {
+  creditCardId               BigInt                  @id
+  cardNumber                 String
+  description                String?
+  alias                      String?
+  creditCardGroupCode        String?
+  checkedOutBy               String?
+  checkedOutByEmployeeId     BigInt?
+  checkedOutByEmployeeNumber String?
+  CreditCardTransactions     CreditCardTransaction[]
+}
+
+model CreditCardTransaction {
+  creditCardTransactionId    BigInt                      @id
+  creditCardId               BigInt
+  status                     String?
+  description                String?
+  amount                     Float
+  vendorDisplayName          String?
+  transactionTime            DateTime
+  createdTime                DateTime
+  modifiedTime               DateTime
+  attachments                Attachment[]
+  CredCardTransactionDetails CredCardTransactionDetail[]
+  creditCard                 CreditCard                  @relation(fields: [creditCardId], references: [creditCardId], onDelete: Cascade)
+}
+
+model CredCardTransactionDetail {
+  creditCardTransactionDetailId BigInt                @id
+  creditCardTransactionId       BigInt
+  description                   String?
+  amount                        Float
+  quantity                      Float?
+  unitCost                      Float?
+  invoiceId                     BigInt?
+  displayOrder                  Int?
+  createdTime                   DateTime
+  modifiedTime                  DateTime
+  CreditCardTransaction         CreditCardTransaction @relation(fields: [creditCardTransactionId], references: [creditCardTransactionId], onDelete: Cascade)
+  Invoice                       Invoice?              @relation(fields: [invoiceId], references: [invoiceId])
+}
+
+model ExpenseReimbursement {
+  expenseReimbursementId        BigInt       @id
+  createdTime                   DateTime
+  modifiedTime                  DateTime
+  description                   String?
+  fiscalYear                    String?
+  amount                        Float
+  status                        String?
+  expenseReimbursementGroupCode String?
+  reimbursementFor              String?
+  employeeNumber                String?
+  numberOfTransactionDays       Int
+  invoiceId                     BigInt?
+  transactionStartDate          DateTime?
+  transactionEndDate            DateTime?
+  Attachment                    Attachment[]
+}
+
+model ExpenseReimbursementDetail {
+  expenseReimbursementDetailId BigInt       @id
+  expenseReimbursementId       BigInt
+  description                  String?
+  amount                       Float?
+  createdTime                  DateTime
+  modifiedTime                 DateTime
+  quantity                     Float?
+  unitCost                     Float?
+  reimburse                    Boolean
+  Attachment                   Attachment[]
+}
+
+model PurchaseOrder {
+  purchaseOrderId            BigInt                @id
+  purchaseOrderNumber        String?
+  purchaseOrderRequestNumber BigInt?
+  createdTime                DateTime
+  modifiedTime               DateTime
+  createdBy                  String
+  modifiedBy                 String?
+  fiscalYear                 String?
+  status                     String?
+  vendorName                 String?
+  vendorNumber               String?
+  amount                     Float
+  description                String?
+  batch                      String?
+  postDate                   DateTime?
+  postDateHistory            DateTime?
+  shipDate                   DateTime?
+  vendorId                   BigInt?
+  Asset                      Asset[]
+  Attachment                 Attachment[]
+  PurchaseOrderDetail        PurchaseOrderDetail[]
+}
+
+model PurchaseOrderDetail {
+  purchaseOrderDetailId   BigInt                    @id
+  purchaseOrderId         BigInt
+  PurchaseOrderAccounting PurchaseOrderAccounting[]
+  PurchaseOrder           PurchaseOrder             @relation(fields: [purchaseOrderId], references: [purchaseOrderId])
+}
+
+model PurchaseOrderAccounting {
+  purchaseOrderAccountingId BigInt              @id
+  purchaseOrderDetailId     BigInt
+  accountId                 BigInt
+  Account                   Account             @relation(fields: [accountId], references: [accountId])
+  PurchaseOrderDetail       PurchaseOrderDetail @relation(fields: [purchaseOrderDetailId], references: [purchaseOrderDetailId])
+}
+
+model Account {
+  accountId               BigInt                    @id
+  displayAccount          String
+  fundDimension           String                    @db.Char(3)
+  objectDimension         String                    @db.Char(4)
+  subObjectDimension      String                    @db.Char(2)
+  organizationDimension   String                    @db.Char(3)
+  fiscalYearDimension     String                    @db.Char(1)
+  programIntentDimension  String                    @db.Char(2)
+  localDimension          String                    @db.Char(3)
+  description             String?
+  functionDimension       String                    @db.Char(2)
+  createdTime             DateTime?
+  isActive                Boolean?
+  PurchaseOrderAccounting PurchaseOrderAccounting[]
+}
+
+model TeacherClasses {
+  aesopId              BigInt       @id
+  employeeId           BigInt
+  employeeNumber       String
+  classesTaught        String?
+  createdTime          DateTime
+  modifiedTime         DateTime
+  employeeLocationCode String?
+  employee             EmployeeInfo @relation(fields: [employeeId], references: [employeeId], onDelete: Cascade)
+}
+
+model PurchasingGroupApprovalTaskSecurityGroup {
+  purchasingGroupApprovalTaskSecurityGroupId BigInt  @id
+  purchasingGroupApprovalTaskId              BigInt
+  groupIdSecurity                            BigInt
+  groupSecurityDescription                   String?
+  groupSecurityName                          String?
+}
+
+model GroupMembership {
+  groupMembershipId BigInt  @id
+  groupIdParent     BigInt
+  groupNameParent   String
+  databaseUsername  String?
+  userIdMember      BigInt
+  username          String?
+}
+
+model FundCode {
+  purchasingGroupApprovalTaskId BigInt
+  description                   String
+  level                         Int
+  fundDimension                 String
+
+  @@id([purchasingGroupApprovalTaskId, fundDimension])
+}
+
+model LocalCode {
+  purchasingGroupApprovalTaskId BigInt
+  description                   String
+  level                         Int
+  localDimension                String
+
+  @@id([purchasingGroupApprovalTaskId, localDimension])
+}
+
+model ProgramCode {
+  purchasingGroupApprovalTaskId BigInt
+  description                   String
+  level                         Int
+  programDimension              String
+
+  @@id([purchasingGroupApprovalTaskId, programDimension])
+}
+
+model ExpenseReimbursementGroupApprovalTask {
+  expenseReimbursementGroupApprovalTaskId BigInt
+  description                             String?
+  level                                   Int
+  fundDimension                           String
+  functionDimension                       String
+  objectDimension                         String
+  subObjectDimension                      String
+  organizationDimension                   String
+  programIntentDimension                  String
+  localDimension                          String
+  accountTypeDimension                    String
+
+  @@id([expenseReimbursementGroupApprovalTaskId, fundDimension, level, functionDimension, accountTypeDimension, objectDimension, subObjectDimension, organizationDimension, programIntentDimension, localDimension])
+}
+
+model ExpenseReimbursementGroupApprovalTaskSecurityGroup {
+  expenseReimbursementGroupApprovalTaskSecurityGroupId BigInt  @id
+  expenseReimbursementGroupApprovalTaskId              BigInt
+  groupIdSecurity                                      BigInt
+  groupSecurityName                                    String?
+  groupSecurityDescription                             String?
+}
+
+model TimeOffBalances {
+  employeeTimeOffTypeId        BigInt  @id
+  employeeId                   BigInt
+  employeeNumber               String
+  currentYearAllocatedDays     Float?
+  currentYearUsedDays          Float?
+  currentYearEndingBalanceDays Float?
+  timeOffTypeCodeDescription   String?
+  timeOffTypeCode              String?
+  priorYearEndingBalanceDays   Float?
+
+  @@index([employeeNumber], map: "idx_timeoff_employee_number")
+}
+
+model ContractLetter {
+  contractLetterId    BigInt       @id
+  employeeId          BigInt
+  signatureStatus     String?
+  timeOfSignature     DateTime?
+  expirationDate      DateTime?
+  templateDescription String?
+  laserficheEntryId   String?
+  dateStoredInLF      DateTime?
+  employeeNumber      String
+  employee            EmployeeInfo @relation(fields: [employeeId], references: [employeeId], onDelete: Cascade)
+
+  @@index([employeeNumber], map: "idx_contract_employee_number")
+}
+
+model SickLeaveBankMember {
+  employeeNumber String    @id
+  beginDate      DateTime?
+  isMember       Boolean?
+}
+
+model ApplicantPID {
+  applicantPIDId              BigInt    @id @default(autoincrement())
+  applicantId                 String
+  firstName                   String
+  lastName                    String
+  middleName                  String?
+  socialSecurityNumber        String?
+  birthDate                   DateTime?
+  title                       String?
+  phoneNumber                 String?
+  streetNumber                String?
+  streetName                  String?
+  directional                 String?
+  city                        String?
+  state                       String?
+  zipCode                     String?
+  email                       String?
+  ethnicity                   String?
+  startDate                   DateTime?
+  hireDate                    DateTime?
+  emergencyContactFirstName   String?
+  emergencyContactLastName    String?
+  emergencyContactPhoneNumber String?
+  preferredFirstName          String?
+  createdAt                   DateTime  @default(now())
+  onboardingDate              DateTime?
+  updatedAt                   DateTime  @default(now()) @updatedAt
+  secondEthnicity             String?
+  thirdEthnicity              String?
+
+  @@index([applicantId], map: "idx_applicant_pid")
+}
+
+model SavedApplicant {
+  savedApplicantId Int      @id @default(autoincrement())
+  applicantId      String
+  userEmail        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+  talentEdId       Int
+  talentEd         TalentEd @relation(fields: [talentEdId], references: [id])
+
+  @@index([userEmail], map: "idx_saved_user_email")
+  @@index([applicantId], map: "idx_saved_applicant_id")
+  @@index([applicantId, userEmail], map: "idx_saved_applicant_user")
+  @@index([talentEdId], map: "idx_saved_talent_ed_id")
+}
